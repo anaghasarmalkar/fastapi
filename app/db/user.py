@@ -2,6 +2,9 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.utils.hashing import Hasher
 from app.models.user import User
+from app.schemas.user import UserCreate
+
+# Check if user is active or not
 
 
 def get_user(db: Session, user_id: int):
@@ -16,7 +19,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(User).offset(skip).limit(limit).all()
 
 
-def create_user(db: Session, user: schemas.user.UserCreate):
+def create_user(db: Session, user: UserCreate):
     hashed_password = Hasher.get_password_hash(user.password)
     db_user = models.user.User(
         email=user.email, password=hashed_password)

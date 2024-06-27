@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, status
 from app.db.database import get_db
 from app.schemas.user import UserCreate, UserResponse
 from sqlalchemy.orm import Session
-from app.db.user import user as user_db
+from app.db import user as user_db
 from app.auth.auth_handler import decode_jwt
 from .auth import oauth2_scheme, Token
 

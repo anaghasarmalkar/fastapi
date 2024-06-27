@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.auth_handler import sign_jwt
 from app.db.database import get_db
-from app.db.user import user as user_db
+from app.db import user as user_db
 from app.utils.hashing import Hasher
 
 
