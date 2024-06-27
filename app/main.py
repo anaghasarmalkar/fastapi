@@ -2,12 +2,15 @@ import uvicorn
 
 from fastapi import FastAPI
 
-from app.db.database import engine, Base
+from app.db.database import engine
+from app.models import user as user_model, room as room_model, room_user as room_user_model
 from app.routers import user, auth
 
 from fastapi.middleware.cors import CORSMiddleware
 
-Base.metadata.create_all(bind=engine)
+user_model.Base.metadata.create_all(bind=engine)
+room_model.Base.metadata.create_all(bind=engine)
+room_user_model.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(auth.router)
