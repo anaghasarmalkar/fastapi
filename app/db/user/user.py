@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app import models, schemas
-from .hashing import Hasher
+from app.utils.hashing import Hasher
 from app.models.user import User
 
 

@@ -5,9 +5,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.auth.auth_handler import sign_jwt
-from app.database import get_db
-from app.db import user as users_db
-from app.db.hashing import Hasher
+from app.db.database import get_db
+from app.db.user import user as user_db
+from app.utils.hashing import Hasher
 
 
 router = APIRouter(prefix="/token", tags=["Authentication"])
@@ -60,7 +60,7 @@ def is_token_revoked(token: str = Depends(oauth2_scheme)):
 
 
 def authenticate_user(username: str, password: str, db: Session = Depends(get_db)):
-    db_user = users_db.get_user_by_email(db, username)
+    db_user = user_db.get_user_by_email(db, username)
     if not db_user or not Hasher.verify_password(password, db_user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

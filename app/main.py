@@ -2,7 +2,7 @@ import uvicorn
 
 from fastapi import FastAPI
 
-from app.database import engine, Base
+from app.db.database import engine, Base
 from app.routers import user, auth
 
 from fastapi.middleware.cors import CORSMiddleware
