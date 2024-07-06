@@ -1,10 +1,11 @@
+from jwt import InvalidTokenError
 from typing_extensions import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.auth.auth_handler import sign_jwt
+from app.auth.auth_handler import decode_jwt, sign_jwt
 from app.db.database import get_db
 from app.db import user as user_db
 from app.utils.hashing import Hasher
@@ -27,6 +28,26 @@ class Token(BaseModel):
     token_type: str
 
 
+def authenticate_user_token(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    # Check if user_token is valid or revoked
+    try:
+        payload = decode_jwt(token)
+        username = payload.get("username")
+        if username is None:
+            raise credentials_exception
+    except InvalidTokenError:
+        raise credentials_exception
+    user = user_db.get_user_by_email(db, username)
+    if user is None:
+        raise credentials_exception
+    return user
+
+
 @router.post("")
 def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
     user = authenticate_user(form_data.username, form_data.password, db)
@@ -39,7 +60,6 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Sessio
 
 @router.post("/revoke")
 def revoke_token(token: Annotated[str, Depends(oauth2_scheme)]):
-    print("token to revoke", token)
     token_blacklist.add(token)
     return {"detail": "Token revoked successfully"}
 
@@ -61,10 +81,14 @@ def is_token_revoked(token: str = Depends(oauth2_scheme)):
 
 def authenticate_user(username: str, password: str, db: Session = Depends(get_db)):
     db_user = user_db.get_user_by_email(db, username)
-    if not db_user or not Hasher.verify_password(password, db_user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    unauthorized_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    if not db_user:
+        raise unauthorized_exception
+    if not Hasher.verify_password(password, db_user.password):
+        raise unauthorized_exception
+
     return db_user
