@@ -1,5 +1,6 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, func
-from app.db.database import Base
+from .base import Base
+from sqlalchemy.orm import relationship
 
 
 class Room(Base):
@@ -13,3 +14,5 @@ class Room(Base):
     created_by = Column(Integer, ForeignKey("user.id"))
     modified = Column(DateTime, default=func.datetime('now', 'utc'))
     modified_by = Column(Integer, ForeignKey("user.id"))
+
+    users = relationship('RoomUser', back_populates='room')

@@ -1,5 +1,13 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, func
-from app.db.database import Base
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
+from .base import Base
+
+
+class RoomUserRole(Base):
+    __tablename__ = "room_user_role"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
 
 
 class RoomUser(Base):
@@ -8,4 +16,8 @@ class RoomUser(Base):
     id = Column(Integer, primary_key=True)
     room_id = Column(Integer, ForeignKey("room.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    is_admin = Column(Boolean, default=False)
+    user_role_id = Column(Integer, ForeignKey('room_user_role.id'))
+
+    room = relationship('Room', back_populates='users')
+    user = relationship('User', back_populates='rooms')
+    role = relationship('RoomUserRole')
