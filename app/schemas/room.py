@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, EmailStr
-from typing import Union
+from pydantic import BaseModel, ConfigDict, Field, EmailStr
+from typing import Union, List
 from datetime import datetime
 
 
@@ -23,8 +23,22 @@ class RoomCreate(RoomBase):
 
 class Room(RoomBase):
     id: int
-    is_deleted: bool
     created: datetime
     created_by: int
-    modified: datetime
-    modified_by: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RoomTypes(BaseModel):
+    joined: List[Room]
+    available: List[Room]
+    created: List[Room]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RoomCreateResponse(RoomBase):
+    id: int
+    created: datetime
+
+    model_config = ConfigDict(from_attributes=True)
