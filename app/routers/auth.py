@@ -1,3 +1,4 @@
+from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
 from typing_extensions import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException, Response, status
@@ -5,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.auth.auth_handler import decode_jwt, sign_jwt
+from app.auth.auth_handler import JWTException, decode_jwt, sign_jwt
 from app.db.database import get_db
 from app.db import user as user_db
 from app.utils.hashing import Hasher
@@ -40,8 +41,15 @@ def authenticate_user_token(token: Annotated[str, Depends(oauth2_scheme)], db: S
         username = payload.get("username")
         if username is None:
             raise credentials_exception
-    except InvalidTokenError:
-        raise credentials_exception
+    except JWTException as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"JWT error: {e.message}")
+    except Exception as e:
+        # TODO: HTTPException is for client errors so update this
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"error: {e}"
+        )
+
     user = user_db.get_user_by_email(db, username)
     if user is None:
         raise credentials_exception
