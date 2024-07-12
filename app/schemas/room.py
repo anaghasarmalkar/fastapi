@@ -1,6 +1,8 @@
 from pydantic import BaseModel, ConfigDict, Field, EmailStr
-from typing import Union, List
+from typing import Any, Union, List
 from datetime import datetime
+
+from app.schemas.message import MessageDB
 
 
 class RoomBase(BaseModel):
@@ -25,6 +27,7 @@ class Room(RoomBase):
     id: int
     created: datetime
     created_by: int
+    messages: List[MessageDB]
 
     model_config = ConfigDict(from_attributes=True)
 

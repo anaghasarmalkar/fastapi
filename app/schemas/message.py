@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
@@ -21,3 +21,13 @@ class Message(IncomingMessage):
 
 class AuthMessage(BaseModel):
     access_token: str
+
+
+class MessageDB(BaseModel):
+    uid: str
+    room_id: int
+    message: str
+    sender: int
+    sent: datetime
+
+    model_config = ConfigDict(from_attributes=True)

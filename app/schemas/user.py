@@ -31,12 +31,7 @@ class UserCreate(UserBase):
 
 
 class UserResponse(UserBase):
-    id: int
-    email: str
-    is_active: bool
-
-    class Config:
-        from_attributes = True
+    pass
 
 
 class User(UserBase):
