@@ -26,7 +26,8 @@ class Token(BaseModel):
     token_type: str
 
 
-def authenticate_user_token(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
+@router.post("/validate")
+def validate_user_token(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -39,6 +40,7 @@ def authenticate_user_token(token: Annotated[str, Depends(oauth2_scheme)], db: S
         if username is None:
             raise credentials_exception
     except JWTException as e:
+        token_blacklist.add(token)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=f"JWT error: {e.message}")
     except Exception as e:
@@ -65,6 +67,7 @@ async def validate_jwt_token_ws(data, db: Session = Depends(get_db)):
             raise WebSocketException(
                 code=status.WS_1008_POLICY_VIOLATION, reason="Could not validate credentials")
     except JWTException as e:
+        token_blacklist.add(access_token)
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION, reason=f"JWT error: {e.message}")
 

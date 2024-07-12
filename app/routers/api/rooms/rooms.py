@@ -6,7 +6,7 @@ from app.db import room_user as db_room_user
 from app.schemas.room import RoomCreate, RoomCreateResponse, Room, RoomTypes
 from app.schemas.room_user import RoomJoined
 from typing_extensions import Annotated
-from ..auth.auth import authenticate_user_token
+from ..auth.auth import validate_user_token
 from app.models.user import User
 from enum import Enum
 from app.schemas.response import Response
@@ -22,8 +22,9 @@ class RoomType(str, Enum):
     created = "created"
 
 
+# remove available room if already joined
 @router.get("", status_code=200)
-async def get_rooms(current_user: Annotated[User, Depends(authenticate_user_token)], db: Session = Depends(get_db), type: RoomType = Query(None, description="Filter rooms by type."), skip: int = 0, limit: int = 100):
+async def get_rooms(current_user: Annotated[User, Depends(validate_user_token)], db: Session = Depends(get_db), type: RoomType = Query(None, description="Filter rooms by type."), skip: int = 0, limit: int = 100):
     available_rooms_orm, joined_rooms_orm, created_rooms_orm = [], [], []
     if type == None:
         available_rooms_orm = db_room.get_available_rooms(db)
@@ -53,7 +54,7 @@ async def get_rooms(current_user: Annotated[User, Depends(authenticate_user_toke
 
 
 @router.post("", status_code=201)
-def create_room(room: RoomCreate, current_user: Annotated[User, Depends(authenticate_user_token)], db: Session = Depends(get_db)):
+def create_room(room: RoomCreate, current_user: Annotated[User, Depends(validate_user_token)], db: Session = Depends(get_db)):
     _room = db_room.get_room(db, room.name)
     if _room is not None:
         raise HTTPException(
@@ -75,7 +76,7 @@ def create_room(room: RoomCreate, current_user: Annotated[User, Depends(authenti
 
 
 @router.post("/{room_id}/join", status_code=200)
-def join_room(room_id: int, current_user: Annotated[User, Depends(authenticate_user_token)], db: Session = Depends(get_db)):
+def join_room(room_id: int, current_user: Annotated[User, Depends(validate_user_token)], db: Session = Depends(get_db)):
     room = db_room.get_room_by_id(db, room_id)
     if room is None:
         raise HTTPException(
@@ -97,7 +98,7 @@ def join_room(room_id: int, current_user: Annotated[User, Depends(authenticate_u
 
 
 @router.post("/{room_id}/leave", status_code=200)
-def leave_room(room_id: int, current_user: Annotated[User, Depends(authenticate_user_token)], db: Session = Depends(get_db)):
+def leave_room(room_id: int, current_user: Annotated[User, Depends(validate_user_token)], db: Session = Depends(get_db)):
     room = db_room.get_room_by_id(db, room_id)
     if room is None:
         raise HTTPException(
