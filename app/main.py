@@ -2,7 +2,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import init_db
-from app.routers import user, auth, room
+from app.routers.api import api
+from app.routers.ws import ws
 
 
 def main():
@@ -10,9 +11,8 @@ def main():
     # seed_data()
 
     app = FastAPI()
-    app.include_router(auth.router)
-    app.include_router(user.router)
-    app.include_router(room.router)
+    app.include_router(api.router)
+    app.include_router(ws.router)
 
     origins = [
         "http://localhost:3000",
