@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.db.database import get_db
 from sqlalchemy.orm import Session
@@ -7,12 +6,12 @@ from app.db import room_user as db_room_user
 from app.schemas.room import RoomCreate, RoomCreateResponse, Room, RoomTypes
 from app.schemas.room_user import RoomJoined
 from typing_extensions import Annotated
-from .auth import authenticate_user_token, oauth2_scheme
-from app.auth.auth_handler import decode_jwt
+from ..auth.auth import authenticate_user_token
 from app.models.user import User
 from enum import Enum
 from app.schemas.response import Response
 from fastapi import Query
+
 
 router = APIRouter(prefix="/rooms", tags=["Rooms"])
 

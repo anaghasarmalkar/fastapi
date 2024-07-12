@@ -1,7 +1,5 @@
-from fastapi.responses import JSONResponse
-from jwt import InvalidTokenError
 from typing_extensions import Annotated
-from fastapi import APIRouter, Body, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status, WebSocketException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -10,7 +8,6 @@ from app.auth.auth_handler import JWTException, decode_jwt, sign_jwt
 from app.db.database import get_db
 from app.db import user as user_db
 from app.utils.hashing import Hasher
-
 
 router = APIRouter(prefix="/token", tags=["Authentication"])
 
@@ -43,7 +40,7 @@ def authenticate_user_token(token: Annotated[str, Depends(oauth2_scheme)], db: S
             raise credentials_exception
     except JWTException as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=f"JWT error: {e.message}")
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=f"JWT error: {e.message}")
     except Exception as e:
         # TODO: HTTPException is for client errors so update this
         raise HTTPException(
@@ -53,6 +50,28 @@ def authenticate_user_token(token: Annotated[str, Depends(oauth2_scheme)], db: S
     user = user_db.get_user_by_email(db, username)
     if user is None:
         raise credentials_exception
+    return user
+
+
+async def validate_jwt_token_ws(data, db: Session = Depends(get_db)):
+    access_token = data.get("access_token")
+    if access_token is None:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION, reason="No JWT token found.")
+    try:
+        payload = decode_jwt(access_token)
+        username = payload.get("username")
+        if username is None:
+            raise WebSocketException(
+                code=status.WS_1008_POLICY_VIOLATION, reason="Could not validate credentials")
+    except JWTException as e:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION, reason=f"JWT error: {e.message}")
+
+    user = user_db.get_user_by_email(db, username)
+    if user is None:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION, reason="Invalid user.")
     return user
 
 

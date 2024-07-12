@@ -1,14 +1,14 @@
 from jwt import InvalidTokenError
 from typing_extensions import Annotated
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from app.db.database import get_db
 from app.schemas.user import UserCreate, UserResponse
 from sqlalchemy.orm import Session
 from app.db import user as user_db
 from app.auth.auth_handler import decode_jwt
-from .auth import oauth2_scheme, Token
+from app.routers.api.auth.auth import oauth2_scheme
 
-router = APIRouter(prefix="/user", tags=["User"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/signup", status_code=201)
