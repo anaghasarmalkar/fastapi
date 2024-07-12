@@ -16,3 +16,8 @@ class Room(Base):
     modified_by = Column(Integer, ForeignKey("user.id"))
 
     users = relationship('RoomUser', back_populates='room')
+
+    # bidirectional relationship between the Room and Message class
+    # From a Room instance, associated messages can be accessed via the messages attribute
+    # From a Message instance, the Room these messages belong to can be accessed via the room, attribute
+    messages = relationship('Message', back_populates="room")

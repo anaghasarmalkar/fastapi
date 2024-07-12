@@ -13,3 +13,4 @@ class User(Base):
     created = Column(DateTime, default=func.datetime('now', 'utc'))
 
     rooms = relationship('RoomUser', back_populates='user')
+    messages = relationship("Message", back_populates="sender_user")
