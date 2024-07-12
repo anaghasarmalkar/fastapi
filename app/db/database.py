@@ -1,9 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models.room import Room
-from app.models.user import User
-from app.models.room_user import RoomUser, RoomUserRole
-from app.models.base import Base
+from app.models.models import *
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///app.db"
